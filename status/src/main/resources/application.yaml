@@ -18,3 +18,10 @@ logging:
 springdoc:
   swagger-ui:
     path: '/docs'
+
+management:
+  endpoints:
+    web:
+      base-path: /prom
+      exposure:
+        include: prometheus
