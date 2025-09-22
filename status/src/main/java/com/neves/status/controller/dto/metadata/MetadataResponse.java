@@ -1,5 +1,6 @@
 package com.neves.status.controller.dto.metadata;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -13,15 +14,20 @@ import lombok.Setter;
 @AllArgsConstructor
 public class MetadataResponse {
     @Schema(description = "영상이 저장된 객체 스토리지의 키", example = "videos/asdf.mp4")
-    private String object_key;
+    @JsonProperty("object_key")
+    private String objectKey;
     @Schema(description = "영상 길이 (밀리초 단위)", example = "600000")
+    @JsonProperty("duration")
     private Long duration;
     @Schema(description = "영상이 촬영 시작시간", example = "2024-06-15T12:39:56")
-    private LocalDateTime created_at;
+    @JsonProperty("created_at")
+    private LocalDateTime createdAt;
     @Schema(description = "영상 파일 크기 (바이트 단위)", example = "104857600")
-    private Long file_size;
+    @JsonProperty("file_size")
+    private Long fileSize;
     @Schema(description = "영상 파일 타입", example = "mp4")
-    private String file_type;
+    @JsonProperty("file_type")
+    private String fileType;
 
     public static MetadataResponse example(){
         return new MetadataResponse(

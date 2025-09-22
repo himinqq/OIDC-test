@@ -1,8 +1,10 @@
 package com.neves.status.controller;
 
 import com.neves.status.controller.dto.blackbox.BlackboxRegisterRequestDto;
+import com.neves.status.controller.dto.blackbox.BlackboxRenameRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxResponseDto;
 import com.neves.status.service.BlackboxService;
+import com.neves.status.utils.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BlackboxController {
 	private final BlackboxService blackboxService;
-	private static final String userId = "testUser123";
 
 	@Operation(summary="블랙박스 등록", description="특정 유저의 새로운 블랙박스를 등록합니다.")
 	@ApiResponses({
@@ -34,7 +36,10 @@ public class BlackboxController {
 	})
 	@PostMapping
 	public ResponseEntity<BlackboxResponseDto> register(
-			@RequestBody BlackboxRegisterRequestDto request) {
+			@RequestBody BlackboxRegisterRequestDto request,
+			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken
+	) {
+		String userId = JwtUtils.extractUserIdFromJwt(jwtToken);
 		try {
 			BlackboxResponseDto response = blackboxService.register(userId, request);
 			return ResponseEntity.ok(response);
@@ -51,7 +56,7 @@ public class BlackboxController {
 	@PutMapping("/{blackbox_id}")
 	public ResponseEntity<Object> rename(
 			@PathVariable("blackbox_id") String blackbox_id,
-			@RequestBody BlackboxRegisterRequestDto request) {
+			@RequestBody BlackboxRenameRequestDto request) {
 		try {
 			BlackboxResponseDto response = blackboxService.rename(blackbox_id, request);
 			return ResponseEntity.ok(response);
@@ -66,8 +71,10 @@ public class BlackboxController {
 			@ApiResponse(responseCode="404", description="유저를 찾을 수 없음")
 	})
 	@GetMapping
-	public ResponseEntity<List<BlackboxResponseDto>> list() {
-		List<BlackboxResponseDto> blackboxes = blackboxService.list(userId);
+	public ResponseEntity<List<BlackboxResponseDto>> list(
+			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken
+	) {
+		List<BlackboxResponseDto> blackboxes = blackboxService.list(JwtUtils.extractUserIdFromJwt(jwtToken));
 		return ResponseEntity.ok(blackboxes);
 	}
 }

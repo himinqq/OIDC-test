@@ -1,6 +1,7 @@
 package com.neves.status.service;
 
 import com.neves.status.controller.dto.blackbox.BlackboxRegisterRequestDto;
+import com.neves.status.controller.dto.blackbox.BlackboxRenameRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxResponseDto;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
@@ -36,7 +37,7 @@ public class BlackboxService {
     }
 
     @Transactional
-    public BlackboxResponseDto rename(String blackboxId, BlackboxRegisterRequestDto request) {
+    public BlackboxResponseDto rename(String blackboxId, BlackboxRenameRequestDto request) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
                 .orElseThrow(() -> new NoSuchElementException("블랙박스를 찾을 수 없습니다."));
 

@@ -1,6 +1,5 @@
 package com.neves.status.repository;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import java.time.LocalDateTime;
@@ -8,11 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @NoArgsConstructor
-@Builder
 @AllArgsConstructor
-@Getter
+@Getter @Setter @Builder
 @Entity
 public class Metadata {
 	@Id
@@ -29,4 +28,5 @@ public class Metadata {
 	private Long duration;
 	private String objectKey;
 	private String fileType;
+	private boolean isDeleted = false;
 }
