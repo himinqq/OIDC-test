@@ -2,6 +2,7 @@ package com.neves.status.controller;
 
 import com.neves.status.controller.dto.blackbox.MetadataRegisterRequest;
 import com.neves.status.controller.dto.metadata.MetadataResponse;
+import com.neves.status.service.MetadataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,17 +21,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequiredArgsConstructor
 @Tag(name = "Metadata", description = "영상 메타데이터를 위한 API")
 @RestController
 @RequestMapping("/metadata")
 public class MetadataController {
+	private final MetadataService metadataService;
+
 	@Operation(summary = "영상 메타데이터 등록", description = "새로운 메타데이터를 저장합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode = "201", description = "영상 메타데이터 저장 성공")
 	})
 	@PostMapping
-	public ResponseEntity<Object> register(MetadataRegisterRequest request) {
-		return ResponseEntity.created(null).build();
+	public ResponseEntity<Object> create(MetadataRegisterRequest request) {
+		metadataService.create(java.util.UUID.randomUUID(), request);
+		return ResponseEntity.status(201).build();
 	}
 
 	@Operation(summary="블랙박스의 영상 메타데이터 조회", description="특정 블랙박스의 메타데이터를 특정 날짜에 맞게 조회합니다.")
@@ -46,7 +52,7 @@ public class MetadataController {
 			@Schema(description = "조회할 날짜", example = "2024-06-15T00:00:00")
 			LocalDateTime date
 	) {
-		return ResponseEntity.ok(List.of(MetadataResponse.example()));
+		return ResponseEntity.ok(metadataService.list(blackbox_id, date));
 	}
 
 	@Operation(summary = "영상 삭제", description = "특정 영상을 삭제합니다.")
@@ -60,6 +66,7 @@ public class MetadataController {
 			@Parameter(description = "삭제할 영상의 ID", example = "666a7b29a2862a5b67484344")
 			String video_id
 	) {
+		metadataService.delete(video_id);
 		return ResponseEntity.noContent().build();
 	}
 
