@@ -7,9 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Schema(description = "블랙박스 정보 응답 요청")
 @Getter @Setter
+@ToString
 @Builder
 @AllArgsConstructor
 public class MetadataResponse {

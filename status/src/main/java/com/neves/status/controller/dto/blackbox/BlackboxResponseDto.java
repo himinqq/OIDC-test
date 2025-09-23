@@ -7,10 +7,11 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Schema(description = "블랙박스 응답 DTO")
-@Getter
-@Setter
+@Getter @Setter
+@ToString
 @AllArgsConstructor
 public class BlackboxResponseDto {
     @Schema(description = "블랙박스 UUID", example = "123e4567-e89b-12d3-a456-426614174000")

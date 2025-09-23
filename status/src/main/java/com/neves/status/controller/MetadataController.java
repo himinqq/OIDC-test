@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @Tag(name = "Metadata", description = "영상 메타데이터를 위한 API")
+@Log4j2
 @RestController
 @RequestMapping("/metadata")
 public class MetadataController {
@@ -35,6 +37,7 @@ public class MetadataController {
 	})
 	@PostMapping
 	public ResponseEntity<Object> create(@RequestBody MetadataRegisterRequest request) {
+		log.info("(Creating metadata) request: {}", request);
 		metadataService.create(java.util.UUID.randomUUID(), request);
 		return ResponseEntity.status(201).build();
 	}
@@ -48,12 +51,13 @@ public class MetadataController {
 	public ResponseEntity<List<MetadataResponse>> list(
 			@RequestParam
 			@Schema(description = "블랙박스 UUID", example = "123e4567-e89b-12d3-a456-426614174000")
-			String blackbox_id,
+			String blackboxId,
 			@RequestParam
 			@Schema(description = "조회할 날짜", example = "2024-06-15T00:00:00")
 			LocalDateTime date
 	) {
-		return ResponseEntity.ok(metadataService.list(blackbox_id, date));
+		log.info("(Listing metadata) blackboxId: {}, date: {}", blackboxId, date);
+		return ResponseEntity.ok(metadataService.list(blackboxId, date));
 	}
 
 	@Operation(summary = "영상 삭제", description = "특정 영상을 삭제합니다.")
@@ -61,13 +65,14 @@ public class MetadataController {
 			@ApiResponse(responseCode = "204", description = "영상 삭제 성공"),
 			@ApiResponse(responseCode = "404", description = "해당 video_id를 찾을 수 없음")
 	})
-	@DeleteMapping("/{video_id}")
+	@DeleteMapping("/{videoId}")
 	public ResponseEntity<Void> delete(
 			@PathVariable
 			@Parameter(description = "삭제할 영상의 ID", example = "666a7b29a2862a5b67484344")
-			String video_id
+			String videoId
 	) {
-		metadataService.delete(video_id);
+		log.info("(Deleting metadata) video_id: {}", videoId);
+		metadataService.delete(videoId);
 		return ResponseEntity.noContent().build();
 	}
 

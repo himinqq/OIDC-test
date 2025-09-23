@@ -12,6 +12,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +26,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Blackbox", description = "블랙박스 관리를 위한 API")
+@Log4j2
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/blackboxes")
-@RequiredArgsConstructor
 public class BlackboxController {
 	private final BlackboxService blackboxService;
 
@@ -39,12 +43,13 @@ public class BlackboxController {
 			@RequestBody BlackboxRegisterRequestDto request,
 			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken
 	) {
+		log.info("(Registering blackbox) request: {}", request);
 		String userId = JwtUtils.extractUserIdFromJwt(jwtToken);
 		try {
 			BlackboxResponseDto response = blackboxService.register(userId, request);
 			return ResponseEntity.ok(response);
 		} catch (IllegalArgumentException e) {
-			return ResponseEntity.status(409).build();
+			return ResponseEntity.status(HttpStatus.CONFLICT).build();
 		}
 	}
 
@@ -55,13 +60,14 @@ public class BlackboxController {
 	})
 	@PutMapping("/{blackbox_id}")
 	public ResponseEntity<Object> rename(
-			@PathVariable("blackbox_id") String blackbox_id,
+			@PathVariable("blackbox_id") String blackboxId,
 			@RequestBody BlackboxRenameRequestDto request) {
 		try {
-			BlackboxResponseDto response = blackboxService.rename(blackbox_id, request);
+			log.info("(Renaming blackbox) blackboxId: {}, request: {}", blackboxId, request);
+			BlackboxResponseDto response = blackboxService.rename(blackboxId, request);
 			return ResponseEntity.ok(response);
 		} catch (NoSuchElementException e) {
-			return ResponseEntity.status(404).build();
+			return ResponseEntity.notFound().build();
 		}
 	}
 
@@ -74,6 +80,7 @@ public class BlackboxController {
 	public ResponseEntity<List<BlackboxResponseDto>> list(
 			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken
 	) {
+		log.info("(Finding blackboxes)");
 		List<BlackboxResponseDto> blackboxes = blackboxService.list(JwtUtils.extractUserIdFromJwt(jwtToken));
 		return ResponseEntity.ok(blackboxes);
 	}
@@ -85,11 +92,12 @@ public class BlackboxController {
 	@GetMapping("/{blackbox_id}/status")
 	public ResponseEntity<BlackboxResponseDto> getBlackboxStatus(
 			@PathVariable("blackbox_id") String blackboxId) {
+		log.info("(Getting blackbox status) blackboxId: {}", blackboxId);
 		try {
 			BlackboxResponseDto response = blackboxService.getBlackboxStatus(blackboxId);
 			return ResponseEntity.ok(response);
 		} catch (NoSuchElementException e) {
-			return ResponseEntity.status(404).build();
+			return ResponseEntity.notFound().build();
 		}
 	}
 }

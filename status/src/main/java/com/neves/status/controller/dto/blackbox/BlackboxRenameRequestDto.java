@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Schema(description = "블랙박스 이름 변경 요청 DTO")
 @Getter @Setter
+@ToString
 @AllArgsConstructor
 public class BlackboxRenameRequestDto {
 	@Schema(description = "블랙박스 닉네임", example = "my car blackbox")
