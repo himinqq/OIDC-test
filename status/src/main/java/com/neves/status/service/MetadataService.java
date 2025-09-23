@@ -2,6 +2,8 @@ package com.neves.status.service;
 
 import com.neves.status.controller.dto.blackbox.MetadataRegisterRequest;
 import com.neves.status.controller.dto.metadata.MetadataResponse;
+import com.neves.status.repository.Blackbox;
+import com.neves.status.repository.BlackboxRepository;
 import com.neves.status.repository.Metadata;
 import com.neves.status.repository.MetadataRepository;
 import jakarta.transaction.Transactional;
@@ -17,11 +19,15 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class MetadataService {
 	private final MetadataRepository repository;
+	private final BlackboxRepository blackboxRepository;
 
 	public void create(UUID metadataId, MetadataRegisterRequest request) {
+		Blackbox blackbox = blackboxRepository.findByUuid(request.getBlackboxUuid())
+				.orElseThrow(() -> new IllegalArgumentException("UUID에 해당하는 블랙박스를 찾을 수 없습니다. UUID: : " + request.getBlackboxUuid()));
+
 		Metadata metadata = Metadata.builder()
 				.id(metadataId.toString())
-				.blackboxUuid(request.getBlackboxUuid())
+				.blackbox(blackbox)
 				.streamStartedAt(request.getStreamStartedAt())
 				.createdAt(request.getCreatedAt())
 				.fileSize(request.getFileSize())

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,7 +34,7 @@ public class MetadataController {
 			@ApiResponse(responseCode = "201", description = "영상 메타데이터 저장 성공")
 	})
 	@PostMapping
-	public ResponseEntity<Object> create(MetadataRegisterRequest request) {
+	public ResponseEntity<Object> create(@RequestBody MetadataRegisterRequest request) {
 		metadataService.create(java.util.UUID.randomUUID(), request);
 		return ResponseEntity.status(201).build();
 	}

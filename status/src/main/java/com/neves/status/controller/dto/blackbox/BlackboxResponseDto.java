@@ -24,10 +24,10 @@ public class BlackboxResponseDto {
     private final LocalDateTime createdAt;
     @Schema(description = "블랙박스 헬스 체크", example = "HEALTHY")
     @JsonProperty("health_status")
-    private final String healthStatus = "";
+    private BlackboxStatus healthStatus;
     @Schema(description = "마지막 서버와 연결 시간", example = "2024-06-15T12:34:56Z")
     @JsonProperty("last_connected_at")
-    private final String lastConnectedAt = "";
+    private LocalDateTime lastConnectedAt;
 
     public BlackboxResponseDto(Blackbox blackbox) {
         this.uuid = blackbox.getUuid();

@@ -77,4 +77,19 @@ public class BlackboxController {
 		List<BlackboxResponseDto> blackboxes = blackboxService.list(JwtUtils.extractUserIdFromJwt(jwtToken));
 		return ResponseEntity.ok(blackboxes);
 	}
+	@Operation(summary = "블랙박스 헬스 체크", description = "블랙박스의 연결 상태를 확인합니다.")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "블랙박스 상태 조회 성공"),
+			@ApiResponse(responseCode = "404", description = "블랙박스를 찾을 수 없음")
+	})
+	@GetMapping("/{blackbox_id}/status")
+	public ResponseEntity<BlackboxResponseDto> getBlackboxStatus(
+			@PathVariable("blackbox_id") String blackboxId) {
+		try {
+			BlackboxResponseDto response = blackboxService.getBlackboxStatus(blackboxId);
+			return ResponseEntity.ok(response);
+		} catch (NoSuchElementException e) {
+			return ResponseEntity.status(404).build();
+		}
+	}
 }

@@ -2,6 +2,7 @@ package com.neves.status.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -9,9 +10,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MetadataRepository extends JpaRepository<Metadata, String> {
+	Optional<Metadata> findFirstByBlackboxOrderByCreatedAtDesc(Blackbox blackbox);
 
 	@Query("SELECT m FROM Metadata"
-			+ " m WHERE m.blackboxUuid = :uuid"
+			+ " m WHERE m.blackbox.uuid = :uuid"
 			+ " AND m.isDeleted = false"
 			+ " AND m.createdAt BETWEEN :start AND :end")
 	List<Metadata> findByBlackboxUuidBetween(
