@@ -34,5 +34,6 @@ public class Metadata {
 	private Long duration;
 	private String objectKey;
 	private String fileType;
+	@Builder.Default
 	private boolean isDeleted = false;
 }

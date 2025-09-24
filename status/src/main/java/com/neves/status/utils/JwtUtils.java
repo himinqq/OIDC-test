@@ -6,10 +6,11 @@ import java.util.Base64;
 import java.util.Map;
 import lombok.extern.log4j.Log4j2;
 
+
 @Log4j2
 public abstract class JwtUtils {
 	public static final String JWT_HEADER = "WWW-Authorization";
-	private static final String USER_KEY = "user_id";
+	public static final String USER_KEY = "user_id";
 	private static final ObjectMapper mapper = new ObjectMapper();
 
 	public static String extractUserIdFromJwt(String token) {
