@@ -21,7 +21,7 @@ public class MailScheduler {
 	private final MailClient mailClient;
 	private final Map<String, LocalDateTime> sentBlackboxes = new HashMap<>();
 
-	@Scheduled(cron = "0 0 * * * *")
+	@Scheduled(cron = "${scheduler.disconnected}")
 	public void checkDisconnectedBlackboxes() {
 		log.info("Checking for disconnected blackboxes...");
 		LocalDateTime now = LocalDateTime.now();
