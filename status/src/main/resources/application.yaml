@@ -3,7 +3,7 @@ feign:
     url: ${MAIL_SERVICE_URL:http://localhost:8081}
 
 scheduler:
-  disconnected: ${DISCONNECTED_CRON:0 0 * * * *}
+  disconnected: ${DISCONNECTED_CRON:* * * * * *}
 
 spring:
   application:
