@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class MetadataService {
 
 	public void create(UUID metadataId, MetadataRegisterRequest request) {
 		Blackbox blackbox = blackboxRepository.findByUuid(request.getBlackboxUuid())
-				.orElseThrow(() -> new IllegalArgumentException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(request.getBlackboxUuid())));
+				.orElse(null);
 
 		Metadata metadata = Metadata.builder()
 				.id(metadataId.toString())
@@ -36,6 +38,7 @@ public class MetadataService {
 				.duration(request.getDuration())
 				.objectKey(request.getObjectKey())
 				.fileType(request.getFileType())
+				.isDeleted(Objects.isNull(blackbox))
 				.build();
 		repository.save(metadata);
 	}

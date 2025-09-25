@@ -20,8 +20,8 @@ public class Metadata {
 	@Id
 	private String id;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "blackbox_uuid", referencedColumnName = "uuid")
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@JoinColumn(name = "blackbox_uuid", referencedColumnName = "uuid", nullable = true)
 	private Blackbox blackbox;
 	/**
 	 * 영상이 연속적으로 들어오기 시작한 시간,
