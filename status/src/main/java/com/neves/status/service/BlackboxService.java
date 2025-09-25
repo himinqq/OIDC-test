@@ -8,7 +8,11 @@ import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
 import com.neves.status.repository.Metadata;
 import com.neves.status.repository.MetadataRepository;
+import com.neves.status.scheduler.BlackboxMailDto;
 import java.time.Duration;
+import java.util.ArrayList;
+import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter.Black;
+import org.springframework.cglib.core.Local;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,6 +29,7 @@ public class BlackboxService {
     private final MetadataRepository metadataRepository;
 
     private static final long UNHEALTHY_THRESHOLD_HOURS = 1;
+    private static final long MAIL_THRESHOLD_HOURS = 1;
 
     @Transactional
     public BlackboxResponseDto register(String userId, BlackboxRegisterRequestDto request) {
@@ -63,6 +68,22 @@ public class BlackboxService {
     }
 
     @Transactional(readOnly = true)
+    public List<BlackboxMailDto> findRequiredMailBlackbox(LocalDateTime now) {
+        LocalDateTime thresholdTime = LocalDateTime.now().minusHours(MAIL_THRESHOLD_HOURS);
+        List<Blackbox> blackboxesWithNoRecentMetadata = blackboxRepository.findBlackboxesWithNoRecentMetadata(thresholdTime);
+        List<BlackboxMailDto> ret = new ArrayList<>();
+        for (Blackbox blackbox : blackboxesWithNoRecentMetadata) {
+            ret.add(BlackboxMailDto.builder()
+                    .userId(blackbox.getUserId())
+                    .nickname(blackbox.getNickname())
+                    .blackboxId(blackbox.getUuid())
+                    .lastConnectedAt(getLastConnectedAt(blackbox))
+                    .build());
+        }
+        return ret;
+    }
+
+    @Transactional(readOnly = true)
     public BlackboxResponseDto getBlackboxStatus(String blackboxId) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
                 .orElseThrow(() -> new NoSuchElementException("블랙박스를 찾을 수 없습니다."));
@@ -70,25 +91,24 @@ public class BlackboxService {
         return mapToDtoWithHealthStatus(blackbox, LocalDateTime.now());
     }
 
+    private LocalDateTime getLastConnectedAt(Blackbox blackbox) {
+        return metadataRepository.findFirstByBlackboxOrderByCreatedAtDesc(blackbox)
+                .map(Metadata::getCreatedAt)
+                .orElse(null);
+    }
+
     private BlackboxResponseDto mapToDtoWithHealthStatus(Blackbox blackbox, LocalDateTime now) {
         BlackboxResponseDto dto = new BlackboxResponseDto(blackbox);
-
-        Metadata lastMetadata = metadataRepository.findFirstByBlackboxOrderByCreatedAtDesc(blackbox)
-                .orElse(null);
-
-        if (lastMetadata != null) {
-            LocalDateTime lastConnectedAt = lastMetadata.getCreatedAt();
-
-            dto.setHealthStatus(determineHealthStatus(lastConnectedAt, now));
-            dto.setLastConnectedAt(lastConnectedAt);
-        } else {
-            dto.setHealthStatus(BlackboxStatus.UNHEALTHY);
-            dto.setLastConnectedAt(null);
-        }
+        LocalDateTime lastConnectedAt = getLastConnectedAt(blackbox);
+        dto.setLastConnectedAt(lastConnectedAt);
+        dto.setHealthStatus(determineHealthStatus(lastConnectedAt, now));
         return dto;
     }
 
     private BlackboxStatus determineHealthStatus(LocalDateTime lastConnectedAt, LocalDateTime now) {
+        if (lastConnectedAt == null) {
+            return BlackboxStatus.UNHEALTHY;
+        }
         Duration duration = Duration.between(lastConnectedAt, now);
         if (duration.toHours() >= UNHEALTHY_THRESHOLD_HOURS) {
             return BlackboxStatus.UNHEALTHY;
