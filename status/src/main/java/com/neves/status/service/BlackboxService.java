@@ -4,6 +4,7 @@ import com.neves.status.controller.dto.blackbox.BlackboxRegisterRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxRenameRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxResponseDto;
 import com.neves.status.controller.dto.blackbox.BlackboxStatus;
+import com.neves.status.handler.ErrorMessage;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
 import com.neves.status.repository.Metadata;
@@ -34,7 +35,7 @@ public class BlackboxService {
     @Transactional
     public BlackboxResponseDto register(String userId, BlackboxRegisterRequestDto request) {
         if (blackboxRepository.findByUuid(request.getUuid()).isPresent()) {
-            throw new IllegalArgumentException("이미 등록된 블랙박스입니다.");
+            throw new IllegalArgumentException(ErrorMessage.ALREADY_REGISTERED_BLACKBOX.getMessage());
         }
 
         Blackbox newBlackbox = Blackbox.builder()
@@ -51,7 +52,7 @@ public class BlackboxService {
     @Transactional
     public BlackboxResponseDto rename(String blackboxId, BlackboxRenameRequestDto request) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
-                .orElseThrow(() -> new NoSuchElementException("블랙박스를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
 
         blackbox.setNickname(request.getNickname());
 
@@ -86,7 +87,7 @@ public class BlackboxService {
     @Transactional(readOnly = true)
     public BlackboxResponseDto getBlackboxStatus(String blackboxId) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
-                .orElseThrow(() -> new NoSuchElementException("블랙박스를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
 
         return mapToDtoWithHealthStatus(blackbox, LocalDateTime.now());
     }

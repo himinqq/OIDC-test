@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -58,11 +57,8 @@ public class MetadataController {
 			LocalDateTime date
 	) {
 		log.info("(Listing metadata) blackboxId: {}, date: {}", blackboxId, date);
-		try {
-			return ResponseEntity.ok(metadataService.list(blackboxId, date));
-		} catch (NoSuchElementException e) {
-			return ResponseEntity.notFound().build();
-		}
+		List<MetadataResponse> response = metadataService.list(blackboxId, date);
+		return ResponseEntity.ok(response);
 	}
 
 	@Operation(summary = "영상 삭제", description = "특정 영상을 삭제합니다.")
@@ -77,12 +73,8 @@ public class MetadataController {
 			String videoId
 	) {
 		log.info("(Deleting metadata) video_id: {}", videoId);
-		try {
-			metadataService.delete(videoId);
-			return ResponseEntity.noContent().build();
-		} catch (NoSuchElementException e) {
-			return ResponseEntity.notFound().build();
-		}
+		metadataService.delete(videoId);
+		return ResponseEntity.noContent().build();
 	}
 
 }

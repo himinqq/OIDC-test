@@ -2,6 +2,7 @@ package com.neves.status.service;
 
 import com.neves.status.controller.dto.blackbox.MetadataRegisterRequest;
 import com.neves.status.controller.dto.metadata.MetadataResponse;
+import com.neves.status.handler.ErrorMessage;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
 import com.neves.status.repository.Metadata;
@@ -11,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ public class MetadataService {
 
 	public void create(UUID metadataId, MetadataRegisterRequest request) {
 		Blackbox blackbox = blackboxRepository.findByUuid(request.getBlackboxUuid())
-				.orElseThrow(() -> new IllegalArgumentException("UUID에 해당하는 블랙박스를 찾을 수 없습니다. UUID: : " + request.getBlackboxUuid()));
+				.orElseThrow(() -> new IllegalArgumentException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(request.getBlackboxUuid())));
 
 		Metadata metadata = Metadata.builder()
 				.id(metadataId.toString())
@@ -42,7 +42,7 @@ public class MetadataService {
 
 	public List<MetadataResponse> list(String blackboxId, LocalDateTime targetDate) {
 		blackboxRepository.findByUuid(blackboxId)
-				.orElseThrow(() -> new NoSuchElementException("UUID에 해당하는 블랙박스를 찾을 수 없습니다. UUID: : " + blackboxId));
+				.orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
 		LocalDateTime startOfDay = targetDate.toLocalDate().atStartOfDay();
 		LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
 		List<Metadata> metadataList = repository.findByBlackboxUuidBetween(
@@ -54,12 +54,12 @@ public class MetadataService {
 	}
 
 	public void delete(String metadataId) {
-		Metadata metadata = repository.findById(metadataId).orElseThrow(()
-				-> new NoSuchElementException("ID에 해당하는 메타데이터를 찾을 수 없습니다. ID: " + metadataId));
-		if (metadata.isDeleted()) {
-			throw new NoSuchElementException("ID에 해당하는 메타데이터를 찾을 수 없습니다. ID: " + metadataId);
-		}
-		metadata.setDeleted(true);
+		repository.findById(metadataId).map(metadata -> {
+			if (!metadata.isDeleted()) {
+				metadata.setDeleted(true);
+			}
+			return metadata;
+		}).orElseThrow(() -> new NoSuchElementException(ErrorMessage.METADATA_NOT_FOUND.getMessage(metadataId)));
 	}
 
 	private List<MetadataResponse> toResponseList(List<Metadata> metadataList) {

@@ -10,11 +10,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,12 +42,8 @@ public class BlackboxController {
 	) {
 		log.info("(Registering blackbox) request: {}", request);
 		String userId = JwtUtils.extractUserIdFromJwt(jwtToken);
-		try {
-			BlackboxResponseDto response = blackboxService.register(userId, request);
-			return ResponseEntity.ok(response);
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.status(HttpStatus.CONFLICT).build();
-		}
+		BlackboxResponseDto response = blackboxService.register(userId, request);
+		return ResponseEntity.ok(response);
 	}
 
 	@Operation(summary="블랙박스 이름 변경", description="등록된 블랙박스의 이름을 변경합니다.")
@@ -62,13 +55,9 @@ public class BlackboxController {
 	public ResponseEntity<Object> rename(
 			@PathVariable("blackbox_id") String blackboxId,
 			@RequestBody BlackboxRenameRequestDto request) {
-		try {
-			log.info("(Renaming blackbox) blackboxId: {}, request: {}", blackboxId, request);
-			BlackboxResponseDto response = blackboxService.rename(blackboxId, request);
-			return ResponseEntity.ok(response);
-		} catch (NoSuchElementException e) {
-			return ResponseEntity.notFound().build();
-		}
+		log.info("(Renaming blackbox) blackboxId: {}, request: {}", blackboxId, request);
+		BlackboxResponseDto response = blackboxService.rename(blackboxId, request);
+		return ResponseEntity.ok(response);
 	}
 
 	@Operation(summary="유저의 블랙박스 목록 조회", description="특정 유저가 등록한 모든 블랙박스의 목록을 조회합니다.")
@@ -93,11 +82,7 @@ public class BlackboxController {
 	public ResponseEntity<BlackboxResponseDto> getBlackboxStatus(
 			@PathVariable("blackbox_id") String blackboxId) {
 		log.info("(Getting blackbox status) blackboxId: {}", blackboxId);
-		try {
-			BlackboxResponseDto response = blackboxService.getBlackboxStatus(blackboxId);
-			return ResponseEntity.ok(response);
-		} catch (NoSuchElementException e) {
-			return ResponseEntity.notFound().build();
-		}
+		BlackboxResponseDto response = blackboxService.getBlackboxStatus(blackboxId);
+		return ResponseEntity.ok(response);
 	}
 }
