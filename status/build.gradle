@@ -49,7 +49,8 @@ dependencies {
 
 	// DB
 	runtimeOnly 'com.mysql:mysql-connector-j'
-	runtimeOnly 'com.h2database:h2' // 일단 mysql 연결하기 전까지 사용
+	runtimeOnly 'org.postgresql:postgresql'
+
 	testRuntimeOnly 'com.h2database:h2'
 
 	compileOnly 'org.projectlombok:lombok'
