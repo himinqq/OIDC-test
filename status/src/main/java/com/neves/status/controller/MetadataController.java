@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,7 @@ public class MetadataController {
 	public ResponseEntity<Object> create(@RequestBody MetadataRegisterRequest request) {
 		log.info("(Creating metadata) request: {}", request);
 		metadataService.create(java.util.UUID.randomUUID(), request);
-		return ResponseEntity.status(201).build();
+		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
 	@Operation(summary="블랙박스의 영상 메타데이터 조회", description="특정 블랙박스의 메타데이터를 특정 날짜에 맞게 조회합니다.")

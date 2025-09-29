@@ -3,6 +3,7 @@ package com.neves.status.scheduler;
 import com.neves.status.feign.MailClient;
 import com.neves.status.feign.MailDto;
 import com.neves.status.service.BlackboxService;
+import feign.FeignException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -24,17 +25,24 @@ public class MailScheduler {
 	@Scheduled(cron = "${scheduler.disconnected}")
 	public void checkDisconnectedBlackboxes() {
 		log.info("Checking for disconnected blackboxes...");
-		LocalDateTime now = LocalDateTime.now();
-		List<BlackboxMailDto> disconnectedBlackbox = blackboxService.findRequiredMailBlackbox(now);
+		List<BlackboxMailDto> disconnectedBlackbox = blackboxService.findRequiredMailBlackbox();
 		for (BlackboxMailDto blackbox : disconnectedBlackbox) {
 			LocalDateTime dateLastConnected = sentBlackboxes.get(blackbox.getBlackboxId());
 			if (Objects.isNull(dateLastConnected) || !dateLastConnected.isEqual(blackbox.getLastConnectedAt())) {
-				mailClient.sendMail(MailDto.builder()
-						.to(blackbox.getUserId())
-						.format(MailClient.BLACKBOX_UNCONNECTED)
-						.parameters(List.of(blackbox.getNickname(), blackbox.getLastConnectedAt().toString()))
-						.build());
-				sentBlackboxes.put(blackbox.getBlackboxId(), blackbox.getLastConnectedAt());
+				log.info("Sending mail to {}, lastConnectedAt: {}", blackbox.getUserId(), blackbox.getLastConnectedAt().toString());
+				try {
+					mailClient.sendMail(MailDto.builder()
+							.to(blackbox.getUserId())
+							.format(MailClient.BLACKBOX_UNCONNECTED)
+							.parameters(List.of(blackbox.getNickname(),
+									blackbox.getLastConnectedAt().toString()))
+							.build());
+					sentBlackboxes.put(blackbox.getBlackboxId(), blackbox.getLastConnectedAt());
+				} catch (FeignException e) {
+					log.info("Fail to connect the mail server, blackboxId: {}, status: {}, response: {}", blackbox.getBlackboxId(), e.status(), e.contentUTF8());
+				} catch (RuntimeException e) {
+					log.info("A exception occurred while connect the mail server, blackboxId: {}", blackbox.getBlackboxId());
+				}
 			}
 		}
 	}

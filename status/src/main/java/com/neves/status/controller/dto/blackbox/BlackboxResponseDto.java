@@ -10,7 +10,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Schema(description = "블랙박스 응답 DTO")
-@Getter @Setter
+@Getter
 @ToString
 @AllArgsConstructor
 public class BlackboxResponseDto {
@@ -23,17 +23,30 @@ public class BlackboxResponseDto {
     @Schema(description = "등록된 시간", example = "2024-06-15T12:34:56Z")
     @JsonProperty("created_at")
     private final LocalDateTime createdAt;
-    @Schema(description = "블랙박스 헬스 체크", example = "HEALTHY")
-    @JsonProperty("health_status")
-    private BlackboxStatus healthStatus;
     @Schema(description = "마지막 서버와 연결 시간", example = "2024-06-15T12:34:56Z")
     @JsonProperty("last_connected_at")
-    private LocalDateTime lastConnectedAt;
+    private final LocalDateTime lastConnectedAt;
+    @Schema(description = "블랙박스 헬스 체크", example = "HEALTHY")
+    @JsonProperty("health_status")
+    private final BlackboxStatus healthStatus;
 
-    public BlackboxResponseDto(Blackbox blackbox) {
-        this.uuid = blackbox.getUuid();
-        this.nickname = blackbox.getNickname();
-        this.createdAt = blackbox.getCreatedAt();
+    public static BlackboxResponseDto createUnhealthy(Blackbox blackbox) {
+        return new BlackboxResponseDto(
+                blackbox.getUuid(),
+                blackbox.getNickname(),
+                blackbox.getCreatedAt(),
+                null,
+                BlackboxStatus.UNHEALTHY
+        );
+    }
 
+    public static BlackboxResponseDto createWithHealthy(Blackbox blackbox, LocalDateTime lastConnectedAt, BlackboxStatus healthy) {
+        return new BlackboxResponseDto(
+                blackbox.getUuid(),
+                blackbox.getNickname(),
+                blackbox.getCreatedAt(),
+                lastConnectedAt,
+                healthy
+        );
     }
 }

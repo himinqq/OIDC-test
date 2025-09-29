@@ -58,9 +58,8 @@ public class MetadataService {
 
 	public void delete(String metadataId) {
 		repository.findById(metadataId).map(metadata -> {
-			if (!metadata.isDeleted()) {
+			if (!metadata.isDeleted())
 				metadata.setDeleted(true);
-			}
 			return metadata;
 		}).orElseThrow(() -> new NoSuchElementException(ErrorMessage.METADATA_NOT_FOUND.getMessage(metadataId)));
 	}

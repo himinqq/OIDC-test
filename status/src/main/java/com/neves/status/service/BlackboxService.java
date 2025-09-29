@@ -10,10 +10,9 @@ import com.neves.status.repository.BlackboxRepository;
 import com.neves.status.repository.Metadata;
 import com.neves.status.repository.MetadataRepository;
 import com.neves.status.scheduler.BlackboxMailDto;
+import com.neves.status.utils.CurrentTimeHolder;
 import java.time.Duration;
 import java.util.ArrayList;
-import org.apache.logging.log4j.core.pattern.AbstractStyleNameConverter.Black;
-import org.springframework.cglib.core.Local;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +45,7 @@ public class BlackboxService {
                 .build();
 
         Blackbox savedBlackbox = blackboxRepository.save(newBlackbox);
-        return new BlackboxResponseDto(savedBlackbox);
+        return BlackboxResponseDto.createUnhealthy(savedBlackbox);
     }
 
     @Transactional
@@ -55,22 +54,21 @@ public class BlackboxService {
                 .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
 
         blackbox.setNickname(request.getNickname());
-
         Blackbox updatedBlackbox = blackboxRepository.save(blackbox);
-        return new BlackboxResponseDto(updatedBlackbox);
+        return createDtoWithHealthy(updatedBlackbox);
     }
 
     @Transactional(readOnly = true)
     public List<BlackboxResponseDto> list(String userId) {
         List<Blackbox> blackboxes = blackboxRepository.findByUserId(userId);
         return blackboxes.stream()
-                .map(BlackboxResponseDto::new)
+                .map(this::createDtoWithHealthy)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<BlackboxMailDto> findRequiredMailBlackbox(LocalDateTime now) {
-        LocalDateTime thresholdTime = LocalDateTime.now().minusHours(MAIL_THRESHOLD_HOURS);
+    public List<BlackboxMailDto> findRequiredMailBlackbox() {
+        LocalDateTime thresholdTime = CurrentTimeHolder.now().minusHours(MAIL_THRESHOLD_HOURS);
         List<Blackbox> blackboxesWithNoRecentMetadata = blackboxRepository.findBlackboxesWithNoRecentMetadata(thresholdTime);
         List<BlackboxMailDto> ret = new ArrayList<>();
         for (Blackbox blackbox : blackboxesWithNoRecentMetadata) {
@@ -89,21 +87,13 @@ public class BlackboxService {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
                 .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
 
-        return mapToDtoWithHealthStatus(blackbox, LocalDateTime.now());
+        return createDtoWithHealthy(blackbox);
     }
 
     private LocalDateTime getLastConnectedAt(Blackbox blackbox) {
         return metadataRepository.findFirstByBlackboxOrderByCreatedAtDesc(blackbox)
                 .map(Metadata::getCreatedAt)
                 .orElse(null);
-    }
-
-    private BlackboxResponseDto mapToDtoWithHealthStatus(Blackbox blackbox, LocalDateTime now) {
-        BlackboxResponseDto dto = new BlackboxResponseDto(blackbox);
-        LocalDateTime lastConnectedAt = getLastConnectedAt(blackbox);
-        dto.setLastConnectedAt(lastConnectedAt);
-        dto.setHealthStatus(determineHealthStatus(lastConnectedAt, now));
-        return dto;
     }
 
     private BlackboxStatus determineHealthStatus(LocalDateTime lastConnectedAt, LocalDateTime now) {
@@ -115,5 +105,11 @@ public class BlackboxService {
             return BlackboxStatus.UNHEALTHY;
         }
         return BlackboxStatus.HEALTHY;
+    }
+
+    private BlackboxResponseDto createDtoWithHealthy(Blackbox blackbox) {
+        LocalDateTime lastConnectedAt = getLastConnectedAt(blackbox);
+        BlackboxStatus blackboxStatus = determineHealthStatus(lastConnectedAt, CurrentTimeHolder.now());
+        return BlackboxResponseDto.createWithHealthy(blackbox, lastConnectedAt, blackboxStatus);
     }
 }
