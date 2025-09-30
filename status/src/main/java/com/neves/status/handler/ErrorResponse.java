@@ -20,4 +20,8 @@ public class ErrorResponse {
                 .message(message)
                 .build();
     }
+
+    public static ErrorResponse of(ErrorMessage errorMessage) {
+        return of(errorMessage.getStatus(), errorMessage.getMessage());
+    }
 }

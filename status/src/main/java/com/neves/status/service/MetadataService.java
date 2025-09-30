@@ -2,7 +2,6 @@ package com.neves.status.service;
 
 import com.neves.status.controller.dto.blackbox.MetadataRegisterRequest;
 import com.neves.status.controller.dto.metadata.MetadataResponse;
-import com.neves.status.handler.AuthorizationException;
 import com.neves.status.handler.ErrorMessage;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
@@ -12,9 +11,7 @@ import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,9 +43,9 @@ public class MetadataService {
 
 	public List<MetadataResponse> list(String userId,String blackboxId, LocalDateTime targetDate) {
 		Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
-				.orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
+				.orElseThrow(ErrorMessage.BLACKBOX_NOT_FOUND.withArgs(blackboxId)::asException);
 		if (!blackbox.getUserId().equals(userId)) {
-			throw new AuthorizationException(ErrorMessage.FORBIDDEN.getMessage());
+			throw ErrorMessage.FORBIDDEN.asException();
 		}
 		LocalDateTime startOfDay = targetDate.toLocalDate().atStartOfDay();
 		LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
@@ -62,10 +59,10 @@ public class MetadataService {
 
 	public void delete(String userId,String metadataId) {
 		Metadata metadata = repository.findById(metadataId)
-				.orElseThrow(() -> new NoSuchElementException(ErrorMessage.METADATA_NOT_FOUND.getMessage(metadataId)));
+				.orElseThrow(ErrorMessage.METADATA_NOT_FOUND.withArgs(metadataId)::asException);
 
         if (metadata.getBlackbox() == null || !metadata.getBlackbox().getUserId().equals(userId)) {
-            throw new AuthorizationException(ErrorMessage.FORBIDDEN.getMessage());
+			throw ErrorMessage.FORBIDDEN.asException();
         }
         if (!metadata.isDeleted()){
             metadata.setDeleted(true);

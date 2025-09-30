@@ -4,7 +4,6 @@ import com.neves.status.controller.dto.blackbox.BlackboxRegisterRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxRenameRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxResponseDto;
 import com.neves.status.controller.dto.blackbox.BlackboxStatus;
-import com.neves.status.handler.AuthorizationException;
 import com.neves.status.handler.ErrorMessage;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
@@ -17,7 +16,6 @@ import java.util.ArrayList;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,7 +33,7 @@ public class BlackboxService {
     @Transactional
     public BlackboxResponseDto register(String userId, BlackboxRegisterRequestDto request) {
         if (blackboxRepository.findByUuid(request.getUuid()).isPresent()) {
-            throw new IllegalArgumentException(ErrorMessage.ALREADY_REGISTERED_BLACKBOX.getMessage());
+            throw ErrorMessage.ALREADY_REGISTERED_BLACKBOX.asException();
         }
 
         Blackbox newBlackbox = Blackbox.builder()
@@ -52,10 +50,10 @@ public class BlackboxService {
     @Transactional
     public BlackboxResponseDto rename(String userId, String blackboxId, BlackboxRenameRequestDto request) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
+                .orElseThrow(ErrorMessage.BLACKBOX_NOT_FOUND.withArgs(blackboxId)::asException);
 
         if (!blackbox.getUserId().equals(userId)) {
-            throw new AuthorizationException(ErrorMessage.FORBIDDEN.getMessage());
+            throw ErrorMessage.FORBIDDEN.asException();
         }
 
         blackbox.setNickname(request.getNickname());
@@ -90,7 +88,7 @@ public class BlackboxService {
     @Transactional(readOnly = true)
     public BlackboxResponseDto getBlackboxStatus(String blackboxId) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
+                .orElseThrow(ErrorMessage.BLACKBOX_NOT_FOUND.withArgs(blackboxId)::asException);
 
         return createDtoWithHealthy(blackbox);
     }
