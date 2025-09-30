@@ -11,7 +11,7 @@ jobs:
     permissions:
       id-token: write # 필수: OIDC 토큰을 요청할 수 있는 권한
       contents: read # 필수: actions/checkout을 사용하기 위한 권한
-
+    # TEST 
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 21
