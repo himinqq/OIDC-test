@@ -2,6 +2,7 @@ package com.neves.status.service;
 
 import com.neves.status.controller.dto.blackbox.MetadataRegisterRequest;
 import com.neves.status.controller.dto.metadata.MetadataResponse;
+import com.neves.status.handler.AuthorizationException;
 import com.neves.status.handler.ErrorMessage;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
@@ -43,9 +44,12 @@ public class MetadataService {
 		repository.save(metadata);
 	}
 
-	public List<MetadataResponse> list(String blackboxId, LocalDateTime targetDate) {
-		blackboxRepository.findByUuid(blackboxId)
+	public List<MetadataResponse> list(String userId,String blackboxId, LocalDateTime targetDate) {
+		Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
 				.orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
+		if (!blackbox.getUserId().equals(userId)) {
+			throw new AuthorizationException(ErrorMessage.FORBIDDEN.getMessage());
+		}
 		LocalDateTime startOfDay = targetDate.toLocalDate().atStartOfDay();
 		LocalDateTime endOfDay = startOfDay.plusDays(1).minusNanos(1);
 		List<Metadata> metadataList = repository.findByBlackboxUuidBetween(
@@ -56,12 +60,16 @@ public class MetadataService {
 		return toResponseList(metadataList);
 	}
 
-	public void delete(String metadataId) {
-		repository.findById(metadataId).map(metadata -> {
-			if (!metadata.isDeleted())
-				metadata.setDeleted(true);
-			return metadata;
-		}).orElseThrow(() -> new NoSuchElementException(ErrorMessage.METADATA_NOT_FOUND.getMessage(metadataId)));
+	public void delete(String userId,String metadataId) {
+		Metadata metadata = repository.findById(metadataId)
+				.orElseThrow(() -> new NoSuchElementException(ErrorMessage.METADATA_NOT_FOUND.getMessage(metadataId)));
+
+        if (metadata.getBlackbox() == null || !metadata.getBlackbox().getUserId().equals(userId)) {
+            throw new AuthorizationException(ErrorMessage.FORBIDDEN.getMessage());
+        }
+        if (!metadata.isDeleted()){
+            metadata.setDeleted(true);
+        }
 	}
 
 	private List<MetadataResponse> toResponseList(List<Metadata> metadataList) {

@@ -87,7 +87,8 @@ class MetadataControllerTest {
 		String url = BASE_URL + "?blackboxId=" + blackbox.getUuid() + "&date=" + day;
 
 		// when
-		String responseBody = mockMvc.perform(get(url))
+		String responseBody = mockMvc.perform(get(url)
+				.header(JwtUtils.JWT_HEADER, TestUtils.DEFAULT_JWT))
 			.andExpect(status().isOk())
 			.andReturn()
 			.getResponse()
@@ -110,8 +111,11 @@ class MetadataControllerTest {
 		String url = BASE_URL + "?blackboxId=" + "wrong-id" + "&date=" + day;
 
 		// when
-		mockMvc.perform(get(url))
-			.andExpect(status().isNotFound());
+		mockMvc.perform(get(url)
+                        .header(JwtUtils.JWT_HEADER, TestUtils.DEFAULT_JWT))
+				.andExpect(status().isNotFound());
+		// then
+		assertThat(metadataRepository.findById(metadata.getId())).isPresent();
 	}
 
 	@DisplayName("영상 삭제")
@@ -126,14 +130,16 @@ class MetadataControllerTest {
 		String url = BASE_URL + "/" + metadata.getId();
 
 		// when
-		mockMvc.perform(delete(url))
-			.andExpect(status().isNoContent());
+		mockMvc.perform(delete(url)
+                        .header(JwtUtils.JWT_HEADER, TestUtils.DEFAULT_JWT))
+				.andExpect(status().isNoContent());
 
 		// then
 		assertThat(metadataRepository.findById(metadata.getId()).map(Metadata::isDeleted).orElse(true)).isTrue();
-		mockMvc.perform(get(BASE_URL + "?blackboxId=" + blackbox.getUuid() + "&date=" + metadata.getCreatedAt().toLocalDate().atStartOfDay()))
-			.andExpect(status().isOk())
-			.andExpect(content().string("[]"));
+		mockMvc.perform(get(BASE_URL + "?blackboxId=" + blackbox.getUuid() + "&date=" + metadata.getCreatedAt().toLocalDate().atStartOfDay())
+				    .header(JwtUtils.JWT_HEADER, TestUtils.DEFAULT_JWT))
+                .andExpect(status().isOk())
+			    .andExpect(content().string("[]"));
 	}
 
 	@DisplayName("영상 삭제 - 잘못된 videoId")
@@ -148,7 +154,8 @@ class MetadataControllerTest {
 		String url = BASE_URL + "/" + "wrong-id";
 
 		// when
-		mockMvc.perform(delete(url))
+		mockMvc.perform(delete(url)
+                .header(JwtUtils.JWT_HEADER, TestUtils.DEFAULT_JWT))
 			.andExpect(status().isNotFound());
 
 		// then

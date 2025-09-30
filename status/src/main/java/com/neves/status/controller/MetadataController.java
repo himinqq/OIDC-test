@@ -3,6 +3,7 @@ package com.neves.status.controller;
 import com.neves.status.controller.dto.blackbox.MetadataRegisterRequest;
 import com.neves.status.controller.dto.metadata.MetadataResponse;
 import com.neves.status.service.MetadataService;
+import com.neves.status.utils.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -50,6 +52,7 @@ public class MetadataController {
 	})
 	@GetMapping
 	public ResponseEntity<List<MetadataResponse>> list(
+			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken,
 			@RequestParam
 			@Schema(description = "블랙박스 UUID", example = "123e4567-e89b-12d3-a456-426614174000")
 			String blackboxId,
@@ -58,7 +61,8 @@ public class MetadataController {
 			LocalDateTime date
 	) {
 		log.info("(Listing metadata) blackboxId: {}, date: {}", blackboxId, date);
-		List<MetadataResponse> response = metadataService.list(blackboxId, date);
+		String userId = JwtUtils.extractUserIdFromJwt(jwtToken);
+		List<MetadataResponse> response = metadataService.list(userId, blackboxId, date);
 		return ResponseEntity.ok(response);
 	}
 
@@ -69,12 +73,14 @@ public class MetadataController {
 	})
 	@DeleteMapping("/{videoId}")
 	public ResponseEntity<Void> delete(
+			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken,
 			@PathVariable
 			@Parameter(description = "삭제할 영상의 ID", example = "666a7b29a2862a5b67484344")
 			String videoId
 	) {
 		log.info("(Deleting metadata) video_id: {}", videoId);
-		metadataService.delete(videoId);
+		String userId = JwtUtils.extractUserIdFromJwt(jwtToken);
+		metadataService.delete(userId, videoId);
 		return ResponseEntity.noContent().build();
 	}
 

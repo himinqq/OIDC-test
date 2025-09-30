@@ -4,6 +4,7 @@ import com.neves.status.controller.dto.blackbox.BlackboxRegisterRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxRenameRequestDto;
 import com.neves.status.controller.dto.blackbox.BlackboxResponseDto;
 import com.neves.status.controller.dto.blackbox.BlackboxStatus;
+import com.neves.status.handler.AuthorizationException;
 import com.neves.status.handler.ErrorMessage;
 import com.neves.status.repository.Blackbox;
 import com.neves.status.repository.BlackboxRepository;
@@ -49,9 +50,13 @@ public class BlackboxService {
     }
 
     @Transactional
-    public BlackboxResponseDto rename(String blackboxId, BlackboxRenameRequestDto request) {
+    public BlackboxResponseDto rename(String userId, String blackboxId, BlackboxRenameRequestDto request) {
         Blackbox blackbox = blackboxRepository.findByUuid(blackboxId)
                 .orElseThrow(() -> new NoSuchElementException(ErrorMessage.BLACKBOX_NOT_FOUND.getMessage(blackboxId)));
+
+        if (!blackbox.getUserId().equals(userId)) {
+            throw new AuthorizationException(ErrorMessage.FORBIDDEN.getMessage());
+        }
 
         blackbox.setNickname(request.getNickname());
         Blackbox updatedBlackbox = blackboxRepository.save(blackbox);

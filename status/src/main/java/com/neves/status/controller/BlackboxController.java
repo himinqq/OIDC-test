@@ -49,14 +49,17 @@ public class BlackboxController {
 	@Operation(summary="블랙박스 이름 변경", description="등록된 블랙박스의 이름을 변경합니다.")
 	@ApiResponses({
 			@ApiResponse(responseCode="200", description="블랙박스 이름 변경 성공"),
+			@ApiResponse(responseCode="403", description="권한 없음"),
 			@ApiResponse(responseCode="404", description="블랙박스를 찾을 수 없음")
 	})
 	@PutMapping("/{blackbox_id}")
 	public ResponseEntity<Object> rename(
 			@PathVariable("blackbox_id") String blackboxId,
-			@RequestBody BlackboxRenameRequestDto request) {
+			@RequestBody BlackboxRenameRequestDto request,
+			@RequestHeader(JwtUtils.JWT_HEADER) String jwtToken) {
 		log.info("(Renaming blackbox) blackboxId: {}, request: {}", blackboxId, request);
-		BlackboxResponseDto response = blackboxService.rename(blackboxId, request);
+		String userId = JwtUtils.extractUserIdFromJwt(jwtToken);
+		BlackboxResponseDto response = blackboxService.rename(userId, blackboxId, request);
 		return ResponseEntity.ok(response);
 	}
 

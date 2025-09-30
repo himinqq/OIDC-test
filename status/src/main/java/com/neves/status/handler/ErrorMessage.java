@@ -10,6 +10,7 @@ public enum ErrorMessage {
     //Blackbox
     BLACKBOX_NOT_FOUND("UUID에 해당하는 블랙박스를 찾을 수 없습니다. UUID: %s"),
     ALREADY_REGISTERED_BLACKBOX("이미 등록된 블랙박스입니다."),
+    FORBIDDEN("해당 리소스에 접근할 권한이 없습니다."),
 
     //Metadata
     METADATA_NOT_FOUND("ID에 해당하는 메타데이터를 찾을 수 없습니다. ID: %s");
